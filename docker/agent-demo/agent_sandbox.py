@@ -57,30 +57,6 @@ class TestSequentialAgent(SequentialAgentBase):
         # Regular attribute
         self.test_attr = 123
 
-        self.registrations()
-
-    def _register_property(self, name, property_name=None, **kwargs):
-        [kwargs.pop(key, None) for key in ("getter", "setter")]  # Cannot pass getter/setter
-        property_name = name if property_name is None else property_name
-        register_variable(
-            name,
-            getter=lambda: getattr(self.__class__, property_name).fget(self),
-            setter=lambda x: getattr(self.__class__, property_name).fset(self, x),
-            **kwargs,
-        )
-
-    def _register_method(self, name, method_name=None, **kwargs):
-        [kwargs.pop(key, None) for key in ("getter", "setter")]  # Cannot pass getter/setter
-        method_name = name if method_name is None else method_name
-        if not isinstance(getattr(self, method_name), Callable):
-            raise TypeError(f"Method {method_name} must be a callable function.")
-        register_variable(name, setter=lambda value: start_task(getattr(self, method_name)(*value[0], **value[1])))
-
-    def registrations(self):
-        self._register_method("generate_report")
-        self._register_method("add_suggestions_to_queue_inner", "add_suggestions_to_queue")
-        self._register_property("queue_add_position")
-
     def measurement_plan(self, point: ArrayLike) -> Tuple[str, list, dict]:
         return self.measurement_plan_name, [self._sleep_duration], dict()
 
@@ -171,24 +147,3 @@ register_variable(
     setter=agent.operating_mode_setter,
     pv_type="str",
 )
-
-
-def add_suggestions_to_queue(batch_size):
-    start_task(agent.add_suggestions_to_queue, batch_size)
-
-
-def generate_report(args_kwargs):
-    """Cheap setter wrapper for generate report.
-    All setters must take a single value, so this takes args and kwargs as a tuple to unpack.
-
-    Parameters
-    ----------
-    args_kwargs : Tuple[List, dict]
-        Tuple of args and kwargs passed to the API `POST` as a `value`
-    """
-    _, kwargs = args_kwargs
-    start_task(agent.generate_report, **kwargs)
-
-
-register_variable("add_suggestions_to_queue", setter=add_suggestions_to_queue)
-register_variable("generate_report", setter=generate_report)
