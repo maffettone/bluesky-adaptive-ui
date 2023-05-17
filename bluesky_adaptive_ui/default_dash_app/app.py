@@ -3,9 +3,11 @@ import json
 
 import dash
 import dash_core_components as dcc
+import dash_daq as daq
 import dash_html_components as html
 import dash_table
 import requests
+from dash.dependencies import Input, Output, State
 
 agent_address = "localhost"  # Default address
 agent_port = 60615
@@ -22,14 +24,122 @@ def set_agent_port(port):
 
 
 app = dash.Dash(__name__)
-
 app.layout = html.Div(
     children=[
         html.Div(
             className="dashboard-column",
+            style={
+                "width": "100%",
+                "display": "inline-block",
+                "vertical-align": "top",
+                "horizontal-align": "center",
+                "border": "2px solid black",
+                "padding": "5",
+                "margin": "0px",
+            },
+            children=[
+                html.H1("Agent Swtichboard", style={"text-align": "center"}),
+                html.Div(
+                    style={"display": "flex", "justify-content": "space-evenly"},
+                    children=[
+                        html.Div(
+                            children=[
+                                daq.BooleanSwitch(
+                                    id="toggle-ask-on-tell",
+                                    on=True,
+                                    label="Continuous Asking",
+                                    labelPosition="top",
+                                ),
+                                html.Div(id="ask-on-tell-output", style={"text-align": "center", "color": "red"}),
+                            ],
+                        ),
+                        html.Div(
+                            children=[
+                                daq.BooleanSwitch(
+                                    id="toggle-report-on-tell",
+                                    on=True,
+                                    label="Continuous Reporting",
+                                    labelPosition="top",
+                                ),
+                                html.Div(
+                                    id="report-on-tell-output", style={"text-align": "center", "color": "red"}
+                                ),
+                            ]
+                        ),
+                        html.Div(
+                            children=[
+                                daq.BooleanSwitch(
+                                    id="toggle-queue-front", on=True, label="Add to Front", labelPosition="top"
+                                ),
+                                html.Div(id="queue-front-output", style={"text-align": "center", "color": "red"}),
+                            ]
+                        ),
+                        html.Div(
+                            children=[
+                                html.Button(
+                                    "Generate Report",
+                                    id="trigger-generate-report",
+                                    n_clicks=0,
+                                    style={"background-color": "darkgreen", "color": "white"},
+                                ),
+                                html.Div(id="generate-report-output"),
+                            ]
+                        ),
+                        html.Div(
+                            children=[
+                                html.Button(
+                                    "Generate Suggestion for Queue",
+                                    id="trigger-add-suggestion-queue",
+                                    n_clicks=0,
+                                    style={"background-color": "darkgreen", "color": "white"},
+                                ),
+                                html.Div(id="add-to-queue-output"),
+                            ]
+                        ),
+                    ],
+                ),
+                html.Div(style={"margin-bottom": "30px"}),
+                html.Div(
+                    style={
+                        "display": "flex",
+                        "flex-direction": "column",
+                        "align-items": "center",
+                        "justify-content": "center",
+                    },
+                    children=[
+                        html.Button(
+                            "Tell Agent By UID",
+                            id="submit-uids-button",
+                            n_clicks=0,
+                            style={
+                                "background-color": "darkgreen",
+                                "color": "white",
+                                "margin": "auto",
+                                "display": "block",
+                                "width": "45%",
+                            },
+                        ),
+                        dcc.Textarea(
+                            id="submit-uids-input",
+                            placeholder="Enter list of UIDs to tell the agent about.\
+                                \nThis can be in a comma separated list, or with one UID per line.",
+                            style={
+                                "width": "80%",
+                                "height": "100px",
+                                "horizontal-align": "center",
+                            },
+                        ),
+                        html.Div(id="submit-uids-output"),
+                    ],
+                ),
+                html.Div(style={"margin-bottom": "15px"}),
+            ],
+        ),
+        html.Div(
+            className="dashboard-column",
             style={"width": "50%", "display": "inline-block", "vertical-align": "top"},
             children=[
-                html.H1("Variable Dashboard"),
+                html.H1("Variable Dashboard", style={"text-align": "center"}),
                 html.Div(
                     id="variable-container",
                     children=[
@@ -67,7 +177,7 @@ app.layout = html.Div(
             className="dashboard-column",
             style={"width": "50%", "display": "inline-block", "vertical-align": "top"},
             children=[
-                html.H1("Method Dashboard"),
+                html.H1("Method Dashboard", style={"text-align": "center"}),
                 html.P(
                     "This is a little less user-friendly, but can be used to call an arbitrary method that has been "
                     "registered for your agent. You are responsible for knowing the expected arguments and keyword "
@@ -111,16 +221,94 @@ app.layout = html.Div(
 )
 
 
+@app.callback(Output("ask-on-tell-output", "children"), [Input("toggle-ask-on-tell", "on")])
+def toggle_ask_on_tell(on):
+    payload = {"value": on}
+    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/ask_on_tell", json=payload)
+    if response.status_code == 200:
+        return
+    else:
+        return "FAILING"
+
+
+@app.callback(Output("report-on-tell-output", "children"), [Input("toggle-report-on-tell", "on")])
+def toggle_report_on_tell(on):
+    payload = {"value": on}
+    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/report_on_tell", json=payload)
+    if response.status_code == 200:
+        return
+    else:
+        return "FAILING"
+
+
+@app.callback(Output("queue-front-output", "children"), [Input("toggle-queue-front", "on")])
+def toggle_queue_add_position(on):
+    payload = {"value": "front" if on else "back"}
+    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/queue_add_position", json=payload)
+    if response.status_code == 200:
+        return
+    else:
+        return "FAILING"
+
+
+@app.callback(Output("add-to-queue-output", "children"), Input("trigger-add-suggestion-queue", "n_clicks"))
+def trigger_add_to_queue(n_clicks):
+    if n_clicks:
+        payload = {"value": {"args": [], "kwargs": {}}}
+        response = requests.post(
+            f"http://{agent_address}:{agent_port}/api/variable/add_suggestions_to_queue", json=payload
+        )
+        if response.status_code == 200:
+            return html.Div(children=[html.P("Success")], style={"text-align": "center", "color": "green"})
+        else:
+            return html.Div(children=[html.P("FAILING")], style={"text-align": "center", "color": "red"})
+
+
+@app.callback(Output("generate-report-output", "children"), Input("trigger-generate-report", "n_clicks"))
+def trigger_generate_report(n_clicks):
+    if n_clicks:
+        payload = {"value": {"args": [], "kwargs": {}}}
+        response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/generate_report", json=payload)
+        if response.status_code == 200:
+            return html.Div(children=[html.P("Success")], style={"text-align": "center", "color": "green"})
+        else:
+            return html.Div(children=[html.P("FAILING")], style={"text-align": "center", "color": "red"})
+
+
 @app.callback(
-    dash.dependencies.Output("variable-output", "children"),
+    dash.dependencies.Output("submit-uids-output", "children"),
+    [dash.dependencies.Input("submit-uids-button", "n_clicks")],
+    [dash.dependencies.State("submit-uids-input", "value")],
+)
+def submit_uids(n_clicks, args=None):
+    if n_clicks:
+        if not args:
+            return
+        else:
+            args = [
+                item.strip() for input_line in args.split("\n") for item in input_line.split(",") if item.strip()
+            ]
+        print(args)
+        payload = {"value": {"args": args, "kwargs": {}}}
+        response = requests.post(
+            f"http://{agent_address}:{agent_port}/api/variable/tell_agent_by_uid", json=payload
+        )
+        if response.status_code == 200:
+            return html.Div(children=[html.P("Success")], style={"text-align": "center", "color": "green"})
+        else:
+            return html.Div(children=[html.P("FAILING")], style={"text-align": "center", "color": "red"})
+
+
+@app.callback(
+    Output("variable-output", "children"),
     [
-        dash.dependencies.Input("get-variable-button", "n_clicks"),
-        dash.dependencies.Input("variable-name-input", "n_submit"),
+        Input("get-variable-button", "n_clicks"),
+        Input("variable-name-input", "n_submit"),
     ],
-    [dash.dependencies.State("variable-name-input", "value")],
+    [State("variable-name-input", "value")],
 )
 def get_variable(n_clicks, n_submit, variable_name):
-    if n_clicks > 0 or n_submit > 0:
+    if n_clicks or n_submit:
         response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
         if response.status_code == 200:
             return response.json().get(variable_name, "UNKNOWN")
@@ -140,7 +328,7 @@ def get_variable(n_clicks, n_submit, variable_name):
     ],
 )
 def update_variable(n_clicks, n_submit, variable_name, new_value):
-    if n_clicks > 0 or n_submit > 0:
+    if n_clicks or n_submit:
         payload = {"value": new_value}
         response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", json=payload)
         if response.status_code == 200:
