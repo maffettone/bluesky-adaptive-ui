@@ -6,4 +6,4 @@ testing_sandbox:
       - tree: databroker.mongo_normalized:Tree.from_uri
         path: /
         args:
-          uri: mongodb://localhost:27017/testing_sandbox
+          uri: mongodb://mongodb:27017/testing_sandbox

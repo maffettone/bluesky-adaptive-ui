@@ -2,16 +2,15 @@
 import threading
 from typing import Callable, Literal, Tuple, Union
 
+from bluesky_adaptive.agents.base import AgentConsumer
+from bluesky_adaptive.agents.simple import SequentialAgentBase
+from bluesky_adaptive.server import register_variable, shutdown_decorator, start_task, startup_decorator
 from bluesky_kafka import Publisher
 from bluesky_kafka.utils import create_topics, delete_topics
 from bluesky_queueserver_api.http import REManagerAPI
 from databroker.client import BlueskyRun
 from numpy.typing import ArrayLike
 from tiled.client import from_profile
-
-from bluesky_adaptive.agents.base import AgentConsumer
-from bluesky_adaptive.agents.simple import SequentialAgentBase
-from bluesky_adaptive.server import register_variable, shutdown_decorator, start_task, startup_decorator
 
 
 class TestSequentialAgent(SequentialAgentBase):
@@ -109,10 +108,10 @@ broker_authorization_config = {
     "acks": 1,
     "enable.idempotence": False,
     "request.timeout.ms": 1000,
-    "bootstrap.servers": "127.0.0.1:9092",
+    "bootstrap.servers": "kafka:9092",
 }
 tiled_profile = "testing_sandbox"
-kafka_bootstrap_servers = "127.0.0.1:9092"
+kafka_bootstrap_servers = "kafka:9092"
 bootstrap_servers = kafka_bootstrap_servers
 admin_client_config = broker_authorization_config
 topics = ["test.publisher", "test.subscriber"]

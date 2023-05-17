@@ -16,8 +16,8 @@ RUN pip3 install uvicorn fastapi caproto nslsii
 RUN pip3 install git+https://github.com/bluesky/databroker.git@v2.0.0b13#egg=databroker
 
 
-COPY agent_sim.py /src/agent_sandbox.py
-#COPY agent_sandbox.py /src/agent_sandbox.py
+#COPY agent_sim.py /src/agent_sandbox.py
+COPY agent_sandbox.py /src/agent_sandbox.py
 COPY tiled_client_config.yml /etc/tiled/profiles/tiled_client_config.yml
 
 ENV BS_AGENT_STARTUP_SCRIPT_PATH=/src/agent_sandbox.py
