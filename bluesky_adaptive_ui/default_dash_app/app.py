@@ -254,7 +254,7 @@ def toggle_queue_add_position(on):
 @app.callback(Output("add-to-queue-output", "children"), Input("trigger-add-suggestion-queue", "n_clicks"))
 def trigger_add_to_queue(n_clicks):
     if n_clicks:
-        payload = {"value": {"args": [], "kwargs": {}}}
+        payload = {"value": [[1], {}]}
         response = requests.post(
             f"http://{agent_address}:{agent_port}/api/variable/add_suggestions_to_queue", json=payload
         )
@@ -267,7 +267,7 @@ def trigger_add_to_queue(n_clicks):
 @app.callback(Output("generate-report-output", "children"), Input("trigger-generate-report", "n_clicks"))
 def trigger_generate_report(n_clicks):
     if n_clicks:
-        payload = {"value": {"args": [], "kwargs": {}}}
+        payload = {"value": [[], {}]}
         response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/generate_report", json=payload)
         if response.status_code == 200:
             return html.Div(children=[html.P("Success")], style={"text-align": "center", "color": "green"})
@@ -289,7 +289,7 @@ def submit_uids(n_clicks, args=None):
                 item.strip() for input_line in args.split("\n") for item in input_line.split(",") if item.strip()
             ]
         print(args)
-        payload = {"value": {"args": args, "kwargs": {}}}
+        payload = {"value": [args, {}]}
         response = requests.post(
             f"http://{agent_address}:{agent_port}/api/variable/tell_agent_by_uid", json=payload
         )
@@ -311,7 +311,7 @@ def get_variable(n_clicks, n_submit, variable_name):
     if n_clicks or n_submit:
         response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
         if response.status_code == 200:
-            return response.json().get(variable_name, "UNKNOWN")
+            return str(response.json().get(variable_name, "UNKNOWN"))
         else:
             return f"http://{agent_address}:{agent_port}/api/variable/{variable_name}"
 
@@ -348,7 +348,7 @@ def call_method(n_clicks, method_name, args=None, kwargs=None):
     if n_clicks:
         args = json.loads(args) if args is not None else []
         kwargs = json.loads(kwargs) if kwargs is not None else {}
-        payload = {"value": {"args": args, "kwargs": kwargs}}
+        payload = {"value": [args, kwargs]}
         response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/{method_name}", json=payload)
         if response.status_code == 200:
             return "Success"

@@ -60,6 +60,7 @@ services:
       - redis
   httpserver:
     image: http-server:latest
+    container_name: httpserver
     ports:
       - 60610:60610
     environment:

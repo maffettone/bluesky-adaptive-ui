@@ -19,8 +19,9 @@ class TestSequentialAgent(SequentialAgentBase):
     def __init__(
         self, pub_topic, sub_topic, kafka_bootstrap_servers, broker_authorization_config, tiled_profile, **kwargs
     ):
-        qs = REManagerAPI(http_server_uri=None)
+        qs = REManagerAPI(http_server_uri="http://httpserver:60610")
         qs.set_authorization_key(api_key="SECRET")
+        self.re_manager = qs
 
         kafka_consumer = AgentConsumer(
             topics=[sub_topic],
@@ -78,6 +79,14 @@ class TestSequentialAgent(SequentialAgentBase):
     def report(self, **kwargs) -> dict:
         return {"test": "report"}
 
+    @property
+    def re_manager_status(self):
+        return self.re_manager.status()
+
+    def server_registrations(self) -> None:
+        self._register_property("RE Status", "re_manager_status")
+        return super().server_registrations()
+
 
 # Block of borrowed code from tests ###############################################################
 broker_authorization_config = {
@@ -121,6 +130,7 @@ def startup_topics():
 
 @startup_decorator
 def startup_agent():
+    agent.re_manager.environment_open()
     agent.start()
 
 
