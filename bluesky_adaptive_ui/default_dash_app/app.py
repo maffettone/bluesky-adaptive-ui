@@ -38,7 +38,7 @@ app.layout = html.Div(
                 "margin": "0px",
             },
             children=[
-                html.H1("Agent Swtichboard", style={"text-align": "center"}),
+                html.H1("Agent Switchboard", style={"text-align": "center"}),
                 html.Div(
                     style={"display": "flex", "justify-content": "space-evenly"},
                     children=[
