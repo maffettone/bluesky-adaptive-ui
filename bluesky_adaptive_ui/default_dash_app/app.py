@@ -23,6 +23,14 @@ def set_agent_port(port):
     agent_port = port
 
 
+def initial_bool_query(variable_name):
+    response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
+    if response.status_code == 200:
+        return str(response.json().get(variable_name, "UNKNOWN")) in ["True", "true", "on", "front"]
+    else:
+        return f"http://{agent_address}:{agent_port}/api/variable/{variable_name}"
+
+
 app = dash.Dash(__name__)
 app.layout = html.Div(
     children=[
@@ -43,36 +51,66 @@ app.layout = html.Div(
                     style={"display": "flex", "justify-content": "space-evenly"},
                     children=[
                         html.Div(
+                            style={
+                                "display": "flex",
+                                "flex-direction": "column",
+                                "align-items": "center",
+                                "justify-content": "center",
+                            },
                             children=[
-                                daq.BooleanSwitch(
-                                    id="toggle-ask-on-tell",
-                                    on=True,
+                                daq.Indicator(
+                                    id="indicator-ask-on-tell",
                                     label="Continuous Asking",
                                     labelPosition="top",
+                                    width=20,
+                                    height=20,
+                                    color="black",
                                 ),
+                                html.Button("On/Off", id="button-ask-on-tell", n_clicks=0),
                                 html.Div(id="ask-on-tell-output", style={"text-align": "center", "color": "red"}),
                             ],
                         ),
                         html.Div(
+                            style={
+                                "display": "flex",
+                                "flex-direction": "column",
+                                "align-items": "center",
+                                "justify-content": "center",
+                            },
                             children=[
-                                daq.BooleanSwitch(
-                                    id="toggle-report-on-tell",
-                                    on=True,
+                                daq.Indicator(
+                                    id="indicator-report-on-tell",
                                     label="Continuous Reporting",
                                     labelPosition="top",
+                                    width=20,
+                                    height=20,
+                                    color="black",
                                 ),
+                                html.Button("On/Off", id="button-report-on-tell", n_clicks=0),
                                 html.Div(
                                     id="report-on-tell-output", style={"text-align": "center", "color": "red"}
                                 ),
-                            ]
+                            ],
                         ),
                         html.Div(
+                            style={
+                                "display": "flex",
+                                "flex-direction": "column",
+                                "align-items": "center",
+                                "justify-content": "center",
+                            },
                             children=[
-                                daq.BooleanSwitch(
-                                    id="toggle-queue-front", on=True, label="Add to Front", labelPosition="top"
+                                daq.Indicator(
+                                    id="indicator-queue-front",
+                                    label="Add to Front",
+                                    labelPosition="top",
+                                    width=20,
+                                    height=20,
+                                    color="black",
                                 ),
+                                html.Button("On/Off", id="button-queue-front", n_clicks=0),
                                 html.Div(id="queue-front-output", style={"text-align": "center", "color": "red"}),
-                            ]
+                            ],
                         ),
                         html.Div(
                             children=[
@@ -221,34 +259,92 @@ app.layout = html.Div(
 )
 
 
-@app.callback(Output("ask-on-tell-output", "children"), [Input("toggle-ask-on-tell", "on")])
-def toggle_ask_on_tell(on):
-    payload = {"value": on}
-    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/ask_on_tell", json=payload)
-    if response.status_code == 200:
-        return
+def _toggle(n_clicks, n_intervals, variable_name):
+    if n_clicks > 0:
+        response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
+
+        if response.status_code == 200:
+            resp_str = str(response.json().get(variable_name, "UNKNOWN"))
+            new_value = resp_str not in ["True", "true", "on"]
+            payload = {"value": new_value}
+            response = requests.post(
+                f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", json=payload
+            )
+            if response.status_code == 200:
+                return ("", "green" if new_value else "gray")
+            else:
+                return ("FAILING", "black")
+
+        else:
+            return (f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", "black")
+
+    if n_intervals > 0:
+        response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
+        if response.status_code == 200:
+            resp_str = str(response.json().get(variable_name, "UNKNOWN"))
+            return ("", "green" if resp_str in ["True", "true", "on"] else "grey")
+        else:
+            return (f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", "black")
     else:
-        return "FAILING"
+        return "", "black"
 
 
-@app.callback(Output("report-on-tell-output", "children"), [Input("toggle-report-on-tell", "on")])
-def toggle_report_on_tell(on):
-    payload = {"value": on}
-    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/report_on_tell", json=payload)
-    if response.status_code == 200:
-        return
+@app.callback(
+    [Output("ask-on-tell-output", "children"), Output("indicator-ask-on-tell", "color")],
+    [
+        Input("button-ask-on-tell", "n_clicks"),
+        dash.dependencies.Input("refresh-page", "n_intervals"),
+    ],
+)
+def toggle_ask_on_tell(n_clicks, n_intervals):
+    ret = _toggle(n_clicks, n_intervals, "ask_on_tell")
+    return ret
+
+
+@app.callback(
+    [Output("report-on-tell-output", "children"), Output("indicator-report-on-tell", "color")],
+    [
+        Input("button-report-on-tell", "n_clicks"),
+        dash.dependencies.Input("refresh-page", "n_intervals"),
+    ],
+)
+def toggle_report_on_tell(n_clicks, n_intervals):
+    return _toggle(n_clicks, n_intervals, "report_on_tell")
+
+
+@app.callback(
+    [Output("queue-front-output", "children"), Output("indicator-queue-front", "color")],
+    [Input("button-queue-front", "n_clicks"), Input("refresh-page", "n_intervals")],
+)
+def toggle_queue_add_position(n_clicks, n_intervals):
+    variable_name = "queue_add_position"
+    if n_clicks > 0:
+        response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
+
+        if response.status_code == 200:
+            resp_str = str(response.json().get(variable_name, "UNKNOWN"))
+            new_value = "front" if resp_str != "front" else "back"
+            payload = {"value": new_value}
+            response = requests.post(
+                f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", json=payload
+            )
+            if response.status_code == 200:
+                return ["", "green" if new_value == "front" else "gray"]
+            else:
+                return ["FAILING", "black"]
+
+        else:
+            return [f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", False]
+
+    if n_intervals > 0:
+        response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/{variable_name}")
+        if response.status_code == 200:
+            resp_str = str(response.json().get(variable_name, "UNKNOWN"))
+            return ["", "green" if resp_str == "front" else "grey"]
+        else:
+            return [f"http://{agent_address}:{agent_port}/api/variable/{variable_name}", False]
     else:
-        return "FAILING"
-
-
-@app.callback(Output("queue-front-output", "children"), [Input("toggle-queue-front", "on")])
-def toggle_queue_add_position(on):
-    payload = {"value": "front" if on else "back"}
-    response = requests.post(f"http://{agent_address}:{agent_port}/api/variable/queue_add_position", json=payload)
-    if response.status_code == 200:
-        return
-    else:
-        return "FAILING"
+        return "", "black"
 
 
 @app.callback(Output("add-to-queue-output", "children"), Input("trigger-add-suggestion-queue", "n_clicks"))
