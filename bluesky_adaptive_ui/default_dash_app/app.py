@@ -385,7 +385,12 @@ def submit_uids(n_clicks, args=None):
                 item.strip() for input_line in args.split("\n") for item in input_line.split(",") if item.strip()
             ]
         print(args)
-        payload = {"value": [args, {}]}
+        payload = {
+            "value": [
+                [args],
+                {},
+            ]
+        }
         response = requests.post(
             f"http://{agent_address}:{agent_port}/api/variable/tell_agent_by_uid", json=payload
         )
