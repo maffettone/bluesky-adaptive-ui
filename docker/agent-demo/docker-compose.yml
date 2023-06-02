@@ -49,7 +49,7 @@ services:
     networks:
       - re_manager
   qserver:
-    image: qserver:latest
+    image: queue-server:latest
     environment:
       - REDIS_ADDR=redis:6379
     networks:

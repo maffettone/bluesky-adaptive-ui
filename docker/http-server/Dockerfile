@@ -1,5 +1,5 @@
 # docker build -t http-server:latest .
-FROM  qserver:latest
+FROM  queue-server:latest
 
 RUN pip3 install bluesky-httpserver
 
