@@ -14,7 +14,7 @@ agent_address = "localhost"  # Default address
 agent_port = 60615
 
 DASH_REQUEST_PATHNAME_PREFIX = str(os.getenv("DASH_REQUEST_PATHNAME_PREFIX", "/"))
-
+print(DASH_REQUEST_PATHNAME_PREFIX)
 
 def set_agent_address(address):
     global agent_address
@@ -34,7 +34,7 @@ def initial_bool_query(variable_name):
         return f"http://{agent_address}:{agent_port}/api/variable/{variable_name}"
 
 
-app = dash.Dash(__name__, requests_pathname_prefix=DASH_REQUEST_PATHNAME_PREFIX)
+app = dash.Dash(__name__, requests_pathname_prefix=f"{DASH_REQUEST_PATHNAME_PREFIX}")
 app.layout = html.Div(
     children=[
         html.Div(
@@ -493,4 +493,4 @@ if __name__ == "__main__":
     set_agent_address(args.agent_address)
     set_agent_port(args.agent_port)
 
-    app.run_server(debug=True, port=args.port, host="0.0.0.0")
+    app.run_server(debug=False, port=args.port, host="0.0.0.0")
