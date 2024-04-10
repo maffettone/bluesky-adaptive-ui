@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 
 import dash
 import dash_core_components as dcc
@@ -11,6 +12,8 @@ from dash.dependencies import Input, Output, State
 
 agent_address = "localhost"  # Default address
 agent_port = 60615
+
+DASH_REQUEST_PATHNAME_PREFIX = str(os.getenv("DASH_REQUEST_PATHNAME_PREFIX", "/"))
 
 
 def set_agent_address(address):
@@ -31,7 +34,7 @@ def initial_bool_query(variable_name):
         return f"http://{agent_address}:{agent_port}/api/variable/{variable_name}"
 
 
-app = dash.Dash(__name__, requests_pathname_prefix="/gsas-ui/")
+app = dash.Dash(__name__, requests_pathname_prefix=DASH_REQUEST_PATHNAME_PREFIX)
 app.layout = html.Div(
     children=[
         html.Div(
