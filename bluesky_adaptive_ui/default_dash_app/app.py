@@ -31,7 +31,7 @@ def initial_bool_query(variable_name):
         return f"http://{agent_address}:{agent_port}/api/variable/{variable_name}"
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, requests_pathname_prefix="/gsas-ui/")
 app.layout = html.Div(
     children=[
         html.Div(
@@ -490,4 +490,4 @@ if __name__ == "__main__":
     set_agent_address(args.agent_address)
     set_agent_port(args.agent_port)
 
-    app.run_server(debug=True, port=args.port)
+    app.run_server(debug=True, port=args.port, host="0.0.0.0")
