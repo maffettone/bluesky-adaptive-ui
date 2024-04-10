@@ -1,0 +1,3 @@
+FROM ghcr.io/maffettone/bluesky-pods-bluesky:latest
+RUN pip3 install git+https://github.com/bluesky/databroker.git@v2.0.0b38#egg=databroker
+RUN pip3 install bluesky-adaptive[all]
