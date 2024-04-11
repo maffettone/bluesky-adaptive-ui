@@ -50,7 +50,7 @@ app.layout = html.Div(
                 "margin": "0px",
             },
             children=[
-                html.H1(id="agent-header", children="Agent Switchboard", style={"text-align": "center"}),
+                html.H1(id="switchboard-header", children="Agent Switchboard:test", style={"text-align": "center"}),
                 html.Div(
                     style={"display": "flex", "justify-content": "space-evenly"},
                     children=[
@@ -486,16 +486,16 @@ def get_names(n_clicks, n_intervals):
 
 
 @app.callback(
-    Output("header", "children"),
+    Output("switchboard-header", "children"),
     Input("refresh-page", "n_intervals"),
 )
 def refresh_header(n_intervals):
-    default_header = html.H1("Agent Switchboard: Unregistered Agent Name", style={"text-align": "center"})
-    response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/instance_name")
-    if response.status_code == 200:
+    default_header = "Agent Switchboard: Unregistered Agent Name"
+    response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/Agent Name")
+    if response.status_code != 200:
         return default_header
     else:
-        return f"Agent Switchboard: {response.text}"
+        return f"Agent Switchboard: {response.json().get('Agent Name', 'Unknown')}"
 
 
 if __name__ == "__main__":
