@@ -16,6 +16,7 @@ agent_port = 60615
 DASH_REQUEST_PATHNAME_PREFIX = str(os.getenv("DASH_REQUEST_PATHNAME_PREFIX", "/"))
 print(DASH_REQUEST_PATHNAME_PREFIX)
 
+
 def set_agent_address(address):
     global agent_address
     agent_address = address
@@ -49,7 +50,7 @@ app.layout = html.Div(
                 "margin": "0px",
             },
             children=[
-                html.H1("Agent Switchboard", style={"text-align": "center"}),
+                html.H1(id="agent-header", children="Agent Switchboard", style={"text-align": "center"}),
                 html.Div(
                     style={"display": "flex", "justify-content": "space-evenly"},
                     children=[
@@ -482,6 +483,19 @@ def get_names(n_clicks, n_intervals):
                 fill_width=False,
             )
             return table
+
+
+@app.callback(
+    Output("header", "children"),
+    Input("refresh-page", "n_intervals"),
+)
+def refresh_header(n_intervals):
+    default_header = html.H1("Agent Switchboard: Unregistered Agent Name", style={"text-align": "center"})
+    response = requests.get(f"http://{agent_address}:{agent_port}/api/variable/instance_name")
+    if response.status_code == 200:
+        return default_header
+    else:
+        return f"Agent Switchboard: {response.text}"
 
 
 if __name__ == "__main__":
