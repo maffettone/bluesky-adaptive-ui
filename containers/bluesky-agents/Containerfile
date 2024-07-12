@@ -1,3 +1,6 @@
 FROM ghcr.io/maffettone/bluesky-pods-bluesky:latest
-RUN pip3 install git+https://github.com/bluesky/databroker.git@v2.0.0b38#egg=databroker
-RUN pip3 install bluesky-adaptive[all]
+RUN pip3 install --upgrade --pre databroker
+#RUN pip3 install git+https://github.com/bluesky/databroker.git@v2.0.0b38#egg=databroker
+#RUN pip3 install bluesky-adaptive[all]
+RUN pip3 install asgi_correlation_id jmespath cachey
+#RUN pip3 install "pydantic >=1.8.2,<2"
