@@ -50,7 +50,9 @@ app.layout = html.Div(
                 "margin": "0px",
             },
             children=[
-                html.H1(id="switchboard-header", children="Agent Switchboard:test", style={"text-align": "center"}),
+                html.H1(
+                    id="switchboard-header", children="Agent Switchboard:test", style={"text-align": "center"}
+                ),
                 html.Div(
                     style={"display": "flex", "justify-content": "space-evenly"},
                     children=[
@@ -221,9 +223,9 @@ app.layout = html.Div(
             children=[
                 html.H1("Method Dashboard", style={"text-align": "center"}),
                 html.P(
-                    "This is a little less user-friendly, but can be used to call an arbitrary method that has been "
-                    "registered for your agent. You are responsible for knowing the expected arguments and keyword "
-                    "arguments. A responsible use case would be a method that takes no arguments, like "
+                    "This is a little less user-friendly, but can be used to call an arbitrary method that has "
+                    "been registered for your agent. You are responsible for knowing the expected arguments and "
+                    "keyword arguments. A responsible use case would be a method that takes no arguments, like "
                     "enable_continuous_reporting."
                 ),
                 html.Div(
