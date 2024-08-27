@@ -9,8 +9,8 @@ else
     agent_file="./mvp_full_stack_agent.py"
 fi
 
-pushd ../bluesky-dbv2
-podman build -t bluesky-dbv2 .
+pushd ../bluesky-agents
+podman build -t bluesky-agents .
 popd
 
 podman run --pod pod_acq-pod \
@@ -21,5 +21,5 @@ podman run --pod pod_acq-pod \
         -v ./tiled_client_config.yml:/etc/tiled/profiles/tiled_client_config.yml \
         -e BS_AGENT_STARTUP_SCRIPT_PATH=/app/agent.py \
         -p 60615:60615 \
-        bluesky-dbv2 \
+        bluesky-agents \
         uvicorn bluesky_adaptive.server:app --port 60615 --host 0.0.0.0

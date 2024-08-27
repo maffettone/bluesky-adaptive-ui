@@ -1,7 +1,7 @@
 """Bluesky adaptive agent for the MVP full stack demo.
 This will work from `bluesky-pods`, consume simulated detector data, provide random feedback to the simulated
-beamline, and produce documents for Tiled consumption. 
-This is primarily for testing and building UI. 
+beamline, and produce documents for Tiled consumption.
+This is primarily for testing and building UI.
 """
 
 from typing import Dict, Sequence, Tuple, Union
